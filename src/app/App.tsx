@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
+import { Bottle } from '../components/Bottle'
 import { BottleGrid } from '../components/BottleGrid'
+import { DecorationPicker } from '../components/DecorationPicker'
 import { EditorPanel } from '../components/EditorPanel'
 import { Header } from '../components/Header'
 import { ResultCanvas } from '../components/ResultCanvas'
@@ -9,7 +11,7 @@ import { createStateFromTemplate, getTemplate, templates } from '../data/templat
 import { getThemeColor } from '../data/themeColors'
 import { useLocalDraft } from '../hooks/useLocalDraft'
 import { copyShareLink, readStateFromUrl } from '../hooks/useShareState'
-import { exportNodeToPng } from '../lib/exportImage'
+import { createPngFilename, downloadDataUrl, exportNodeToPng } from '../lib/exportImage'
 import { randomizeBottles } from '../lib/randomize'
 import { loadDraft } from '../lib/storage'
 import { getSummaryText } from '../lib/summary'
@@ -21,7 +23,8 @@ import {
 } from '../lib/validation'
 import type { AppRoute } from './routes'
 import type { AppState } from '../types/appState'
-import type { Bottle } from '../types/bottle'
+import type { Bottle as BottleType } from '../types/bottle'
+import type { BackgroundId, BottleShapeId, FrameId } from '../types/decoration'
 import type { ThemeColorId } from '../types/theme'
 
 function getInitialState(): AppState | null {
@@ -34,7 +37,11 @@ function getInitialState(): AppState | null {
   return null
 }
 
-function updateBottle(bottles: Bottle[], id: string, patch: Partial<Bottle>): Bottle[] {
+function updateBottle(
+  bottles: BottleType[],
+  id: string,
+  patch: Partial<BottleType>,
+): BottleType[] {
   return bottles.map((bottle) => (bottle.id === id ? { ...bottle, ...patch } : bottle))
 }
 
@@ -45,8 +52,10 @@ export function App() {
   const [state, setState] = useState<AppState | null>(() => getInitialState())
   const [selectedId, setSelectedId] = useState('bottle-1')
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
+  const [editorMode, setEditorMode] = useState<'single' | 'grid'>('single')
   const [status, setStatus] = useState('')
   const canvasRef = useRef<HTMLDivElement | null>(null)
+  const touchStartX = useRef<number | null>(null)
 
   useLocalDraft(state)
 
@@ -57,6 +66,10 @@ export function App() {
   }, [selectedId, state?.bottles])
 
   const color = state ? getThemeColor(state.themeColor).hex : getThemeColor('pink').hex
+  const selectedIndex = Math.max(
+    0,
+    state?.bottles.findIndex((bottle) => bottle.id === selectedId) ?? 0,
+  )
 
   function startTemplate(templateId: string) {
     const next = createStateFromTemplate(getTemplate(templateId))
@@ -99,6 +112,20 @@ export function App() {
     )
   }
 
+  function moveSelection(delta: number) {
+    if (!state) return
+    const nextIndex = Math.min(Math.max(selectedIndex + delta, 0), state.bottles.length - 1)
+    setSelectedId(state.bottles[nextIndex].id)
+  }
+
+  function handleSingleTouchEnd(clientX: number) {
+    if (touchStartX.current === null) return
+    const delta = clientX - touchStartX.current
+    touchStartX.current = null
+    if (Math.abs(delta) < 40) return
+    moveSelection(delta < 0 ? 1 : -1)
+  }
+
   async function generateImage() {
     if (!canvasRef.current) return
     setStatus('正在生成图片...')
@@ -108,6 +135,19 @@ export function App() {
       setStatus('图片已生成，移动端可长按保存。')
     } catch {
       setStatus('图片生成失败，请稍后重试，或直接截图保存。')
+    }
+  }
+
+  async function downloadImage() {
+    if (!canvasRef.current) return
+    setStatus('正在生成 PNG...')
+    try {
+      const dataUrl = generatedImage ?? (await exportNodeToPng(canvasRef.current))
+      setGeneratedImage(dataUrl)
+      downloadDataUrl(dataUrl, createPngFilename())
+      setStatus('PNG 已开始下载；如果浏览器拦截下载，可长按下方图片保存。')
+    } catch {
+      setStatus('图片下载失败，请先生成图片，或直接截图保存。')
     }
   }
 
@@ -167,6 +207,18 @@ export function App() {
             onLabelChange={changeBottleLabel}
             onValueChange={changeBottleValue}
           />
+          <DecorationPicker
+            backgroundId={state.backgroundId}
+            frameId={state.frameId}
+            bottleShapeId={state.bottleShapeId}
+            onBackgroundChange={(backgroundId: BackgroundId) =>
+              patchState({ backgroundId })
+            }
+            onFrameChange={(frameId: FrameId) => patchState({ frameId })}
+            onBottleShapeChange={(bottleShapeId: BottleShapeId) =>
+              patchState({ bottleShapeId })
+            }
+          />
           <Toolbar
             onRandomize={() => patchState({ bottles: randomizeBottles(state.bottles) })}
             onClear={() =>
@@ -184,19 +236,85 @@ export function App() {
           <section className="grid gap-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-black">瓶子矩阵</h2>
-              <span className="text-sm font-semibold text-neutral-500">
-                在瓶内上下滑动填水位
-              </span>
+              <div className="flex rounded-lg border border-neutral-200 bg-white p-1">
+                <button
+                  className={
+                    editorMode === 'single'
+                      ? 'btn-primary min-h-9 py-1'
+                      : 'btn-secondary min-h-9 py-1'
+                  }
+                  type="button"
+                  onClick={() => setEditorMode('single')}
+                >
+                  逐题填写
+                </button>
+                <button
+                  className={
+                    editorMode === 'grid'
+                      ? 'btn-primary min-h-9 py-1'
+                      : 'btn-secondary min-h-9 py-1'
+                  }
+                  type="button"
+                  onClick={() => setEditorMode('grid')}
+                >
+                  网格总览
+                </button>
+              </div>
             </div>
-            <BottleGrid
-              bottles={state.bottles}
-              color={color}
-              editable
-              showPercent={state.showPercent}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
-              onValueChange={changeBottleValue}
-            />
+            {editorMode === 'single' ? (
+              <div
+                className="grid gap-4 rounded-lg border border-neutral-200 bg-white p-5 text-center shadow-sm"
+                onTouchStart={(event) => {
+                  touchStartX.current = event.touches[0]?.clientX ?? null
+                }}
+                onTouchEnd={(event) => {
+                  handleSingleTouchEnd(event.changedTouches[0]?.clientX ?? 0)
+                }}
+              >
+                <div className="flex items-center justify-between text-sm font-black text-neutral-500">
+                  <span>
+                    第 {selectedIndex + 1} / {state.bottles.length} 瓶
+                  </span>
+                  <span>还剩 {state.bottles.length - selectedIndex - 1} 道</span>
+                </div>
+                <Bottle
+                  bottle={selectedBottle}
+                  color={color}
+                  editable
+                  focus
+                  showPercent
+                  shapeId={state.bottleShapeId}
+                  onValueChange={changeBottleValue}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    className="btn-secondary"
+                    type="button"
+                    onClick={() => moveSelection(-1)}
+                  >
+                    上一瓶
+                  </button>
+                  <button
+                    className="btn-primary"
+                    type="button"
+                    onClick={() => moveSelection(1)}
+                  >
+                    下一瓶
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <BottleGrid
+                bottles={state.bottles}
+                color={color}
+                editable
+                showPercent={state.showPercent}
+                selectedId={selectedId}
+                shapeId={state.bottleShapeId}
+                onSelect={setSelectedId}
+                onValueChange={changeBottleValue}
+              />
+            )}
           </section>
           <button
             className="btn-primary sticky bottom-4 z-10"
@@ -223,8 +341,8 @@ export function App() {
             {generatedImage ? (
               <img className="block w-full" src={generatedImage} alt="生成的瓶子评价图" />
             ) : (
-              <div className="aspect-[9/16] w-full overflow-hidden bg-[#fff9fb]">
-                <div className="origin-top-left scale-[0.33] sm:scale-[0.42]">
+              <div className="flex aspect-[9/16] w-full justify-center overflow-hidden bg-[#fff7f4]">
+                <div className="origin-top scale-[0.34] sm:scale-[0.42] md:scale-[0.48]">
                   <ResultCanvas state={state} />
                 </div>
               </div>
@@ -232,7 +350,10 @@ export function App() {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button className="btn-primary" type="button" onClick={generateImage}>
-              保存图片
+              生成预览
+            </button>
+            <button className="btn-primary" type="button" onClick={downloadImage}>
+              下载 PNG
             </button>
             <button className="btn-secondary" type="button" onClick={share}>
               复制分享链接

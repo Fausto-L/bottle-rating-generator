@@ -28,6 +28,26 @@ npm install
 npm run dev
 ```
 
+## Mobile Testing
+
+To test on a physical phone such as Xiaomi 14 Ultra:
+
+1. Connect the computer and phone to the same Wi-Fi.
+2. Start Vite on the local network:
+
+```bash
+npm run dev -- --host 0.0.0.0
+```
+
+3. Find the computer LAN IP, for example:
+
+```bash
+ipconfig getifaddr en0
+```
+
+4. Open `http://YOUR_LAN_IP:5173/` on the phone browser. If Vite chooses another
+   port, use the port shown in the terminal.
+
 ## Scripts
 
 - `npm run dev` starts Vite.

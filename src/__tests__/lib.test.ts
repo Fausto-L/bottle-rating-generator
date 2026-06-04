@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createStateFromTemplate, templates } from '../data/templates'
 import { clamp } from '../lib/clamp'
+import { createPngFilename, downloadDataUrl } from '../lib/exportImage'
 import { snapValue } from '../lib/fill'
 import { randomBottleValue } from '../lib/randomize'
-import { decodeShareState, encodeShareState } from '../lib/shareCodec'
+import { decodeShareState, encodeShareState, normalizeState } from '../lib/shareCodec'
 import { getAverageValue, getSummaryText } from '../lib/summary'
 import { validateLabel } from '../lib/validation'
 
@@ -43,5 +44,42 @@ describe('core utilities', () => {
     const encoded = encodeShareState(state)
     expect(decodeShareState(encoded)?.title).toBe(state.title)
     expect(decodeShareState('bad-data')).toBeNull()
+  })
+
+  it('adds default decoration fields to legacy state', () => {
+    const legacy = createStateFromTemplate(templates[0])
+    const normalized = normalizeState({
+      ...legacy,
+      backgroundId: undefined,
+      frameId: undefined,
+      bottleShapeId: undefined,
+    })
+
+    expect(normalized.backgroundId).toBe('scrapbook')
+    expect(normalized.frameId).toBe('sticker')
+    expect(normalized.bottleShapeId).toBe('classic')
+  })
+
+  it('creates a stable PNG filename', () => {
+    expect(createPngFilename(new Date('2026-06-05T00:00:00+08:00'))).toBe(
+      'bottle-rating-20260605.png',
+    )
+  })
+
+  it('triggers a data URL download', () => {
+    const click = vi.fn()
+    const appendChild = vi
+      .spyOn(document.body, 'appendChild')
+      .mockImplementation((node) => node)
+    vi.spyOn(document, 'createElement').mockReturnValue({
+      click,
+      remove: vi.fn(),
+    } as unknown as HTMLAnchorElement)
+
+    downloadDataUrl('data:image/png;base64,abc', 'test.png')
+
+    expect(appendChild).toHaveBeenCalled()
+    expect(click).toHaveBeenCalled()
+    vi.restoreAllMocks()
   })
 })

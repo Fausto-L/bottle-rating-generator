@@ -1,5 +1,7 @@
+import { useId } from 'react'
 import type { Bottle as BottleType } from '../types/bottle'
 import { useBottleDrag } from '../hooks/useBottleDrag'
+import type { BottleShapeId } from '../types/decoration'
 
 type BottleProps = {
   bottle: BottleType
@@ -7,8 +9,18 @@ type BottleProps = {
   editable?: boolean
   showPercent?: boolean
   compact?: boolean
+  poster?: boolean
+  focus?: boolean
+  shapeId?: BottleShapeId
   onValueChange?: (id: string, value: number) => void
   onSelect?: (id: string) => void
+}
+
+const shapePaths: Record<BottleShapeId, string> = {
+  classic:
+    'M34 7h28v22c0 6 18 10 18 28v46c0 10-7 17-17 17H33c-10 0-17-7-17-17V57c0-18 18-22 18-28V7Z',
+  star: 'M48 8l10 28 30 2-23 19 8 30-25-16-25 16 8-30L8 38l30-2 10-28Z',
+  shell: 'M48 13c22 0 38 18 38 43 0 36-16 61-38 61S10 92 10 56c0-25 16-43 38-43Z',
 }
 
 export function Bottle({
@@ -17,19 +29,28 @@ export function Bottle({
   editable = false,
   showPercent = false,
   compact = false,
+  poster = false,
+  focus = false,
+  shapeId = 'classic',
   onValueChange,
   onSelect,
 }: BottleProps) {
+  const reactId = useId()
   const { fillRef, activeValue, isDragging, pointerHandlers } = useBottleDrag({
     value: bottle.value,
     onChange: (value) => onValueChange?.(bottle.id, value),
   })
-  const liquidHeight = (activeValue / 100) * 72
-  const liquidY = 104 - liquidHeight
+  const liquidHeight = (activeValue / 100) * 76
+  const liquidY = 108 - liquidHeight
+  const clipId = `clip-${reactId.replace(/:/g, '')}-${bottle.id}`
+  const outlinePath = shapePaths[shapeId]
 
   return (
     <button
-      className="group relative flex min-w-0 flex-col items-center gap-1 text-center"
+      className={[
+        'group relative flex min-w-0 flex-col items-center text-center',
+        poster ? 'gap-2' : 'gap-1',
+      ].join(' ')}
       type="button"
       onClick={() => onSelect?.(bottle.id)}
       aria-label={`${bottle.label}，当前 ${activeValue}%`}
@@ -37,48 +58,51 @@ export function Bottle({
       <svg
         className={[
           'touch-none overflow-visible',
-          compact ? 'h-20 w-14' : 'h-24 w-16',
+          focus
+            ? 'h-64 w-48'
+            : poster
+              ? 'h-[136px] w-[104px]'
+              : compact
+                ? 'h-24 w-20'
+                : 'h-28 w-24',
           editable ? 'cursor-pointer' : '',
         ].join(' ')}
-        viewBox="0 0 72 128"
+        viewBox="0 0 96 128"
         role="img"
         aria-label={`${bottle.label} 水位 ${activeValue}%`}
         {...(editable ? pointerHandlers : {})}
       >
         <defs>
-          <clipPath id={`clip-${bottle.id}`}>
-            <path d="M28 8h16v23c0 5 14 8 14 25v49c0 8-5 13-13 13H27c-8 0-13-5-13-13V56c0-17 14-20 14-25V8Z" />
+          <clipPath id={clipId}>
+            <path d={outlinePath} />
           </clipPath>
         </defs>
         <path
-          d="M28 8h16v23c0 5 14 8 14 25v49c0 8-5 13-13 13H27c-8 0-13-5-13-13V56c0-17 14-20 14-25V8Z"
+          d={outlinePath}
           fill="#fff"
           stroke="#111"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="6"
         />
-        <rect ref={fillRef} x="14" y="32" width="44" height="72" fill="transparent" />
-        <g clipPath={`url(#clip-${bottle.id})`}>
-          <rect
-            x="12"
-            y={liquidY}
-            width="48"
-            height={liquidHeight + 18}
+        <rect ref={fillRef} x="18" y="32" width="60" height="76" fill="transparent" />
+        <g clipPath={`url(#${clipId})`}>
+          <path
+            d={`M8 ${liquidY} C20 ${liquidY - 6}, 32 ${liquidY + 6}, 44 ${liquidY} S68 ${liquidY - 6}, 88 ${liquidY} V128 H8 Z`}
             fill={color}
-            opacity="0.75"
+            opacity="0.78"
           />
           <path
-            d={`M12 ${liquidY + 2} C24 ${liquidY - 2}, 36 ${liquidY + 6}, 60 ${liquidY + 1}`}
+            d={`M8 ${liquidY} C20 ${liquidY - 6}, 32 ${liquidY + 6}, 44 ${liquidY} S68 ${liquidY - 6}, 88 ${liquidY}`}
             fill="none"
             stroke={color}
             strokeLinecap="round"
-            strokeWidth="4"
+            strokeWidth="5"
           />
         </g>
         {showPercent && (
           <text
-            x="36"
+            x="48"
             y="68"
             textAnchor="middle"
             className="fill-neutral-950 text-[17px] font-bold"
@@ -87,7 +111,16 @@ export function Bottle({
           </text>
         )}
       </svg>
-      <span className="line-clamp-2 h-9 max-w-full break-all text-sm font-semibold leading-tight text-neutral-900">
+      <span
+        className={[
+          'line-clamp-2 max-w-full break-all font-black leading-tight text-neutral-950',
+          focus
+            ? 'h-16 text-2xl'
+            : poster
+              ? 'h-[62px] text-[30px]'
+              : 'h-9 text-base font-semibold',
+        ].join(' ')}
+      >
         {bottle.label}
       </span>
       {isDragging && (

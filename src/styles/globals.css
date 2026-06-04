@@ -41,3 +41,66 @@
 .result-canvas * {
   letter-spacing: 0;
 }
+
+.result-canvas button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+}
+
+.poster-title {
+  text-shadow:
+    4px 4px 0 #f9c7d5,
+    -2px -2px 0 #ffffff,
+    0 4px 0 rgba(17, 17, 17, 0.1);
+  -webkit-text-stroke: 1px #111111;
+}
+
+.poster-frame {
+  border: 6px solid #111111;
+  border-radius: 34px;
+  box-shadow: 12px 12px 0 rgba(17, 17, 17, 0.12);
+}
+
+.poster-frame-stamp {
+  border-radius: 18px;
+  border: 5px dashed #111111;
+  outline: 12px dotted rgba(17, 17, 17, 0.9);
+  outline-offset: -18px;
+}
+
+.poster-frame-photo {
+  border: 16px solid #fffaf4;
+  border-bottom-width: 42px;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 5px rgba(17, 17, 17, 0.9),
+    18px 18px 0 rgba(120, 92, 70, 0.12);
+  filter: sepia(0.06) saturate(0.95);
+}
+
+.poster-frame-window {
+  border: 5px solid #111111;
+  border-radius: 28px;
+  box-shadow: 12px 12px 0 rgba(17, 17, 17, 0.14);
+  position: relative;
+  padding-top: 62px;
+}
+
+.poster-frame-window::before {
+  background:
+    radial-gradient(circle at 22px 50%, #ff6b64 0 9px, transparent 10px),
+    radial-gradient(circle at 52px 50%, #ffcc4d 0 9px, transparent 10px),
+    radial-gradient(circle at 82px 50%, #5bd36a 0 9px, transparent 10px), #fff0f4;
+  border-bottom: 5px solid #111111;
+  border-radius: 23px 23px 0 0;
+  content: '';
+  height: 52px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}

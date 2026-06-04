@@ -14,3 +14,23 @@ export async function exportNodeToPng(node: HTMLElement): Promise<string> {
     },
   })
 }
+
+export function downloadDataUrl(dataUrl: string, filename: string): void {
+  const link = document.createElement('a')
+  link.href = dataUrl
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+}
+
+export function createPngFilename(date = new Date()): string {
+  const stamp = new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+    .format(date)
+    .replaceAll('/', '')
+  return `bottle-rating-${stamp}.png`
+}

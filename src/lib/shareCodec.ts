@@ -1,6 +1,7 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string'
 import { themeColors } from '../data/themeColors'
 import type { AppState } from '../types/appState'
+import type { BackgroundId, BottleShapeId, FrameId } from '../types/decoration'
 import {
   validateBottleValue,
   validateLabel,
@@ -8,7 +9,17 @@ import {
   validateTitle,
 } from './validation'
 
-export function normalizeState(state: AppState): AppState {
+const backgroundIds = ['scrapbook', 'cream', 'doodle'] satisfies BackgroundId[]
+const frameIds = ['sticker', 'stamp', 'photo', 'window'] satisfies FrameId[]
+const bottleShapeIds = ['classic', 'star', 'shell'] satisfies BottleShapeId[]
+
+function pickKnownId<T extends string>(value: unknown, ids: readonly T[], fallback: T): T {
+  return typeof value === 'string' && ids.includes(value as T) ? (value as T) : fallback
+}
+
+export function normalizeState(
+  state: Partial<AppState> & Pick<AppState, 'bottles'>,
+): AppState {
   const themeExists = themeColors.some((color) => color.id === state.themeColor)
 
   return {
@@ -16,7 +27,10 @@ export function normalizeState(state: AppState): AppState {
     templateId: String(state.templateId || 'blank'),
     title: validateTitle(state.title || '瓶子评价图'),
     subtitle: validateSubtitle(state.subtitle || ''),
-    themeColor: themeExists ? state.themeColor : 'pink',
+    themeColor: themeExists && state.themeColor ? state.themeColor : 'pink',
+    backgroundId: pickKnownId(state.backgroundId, backgroundIds, 'scrapbook'),
+    frameId: pickKnownId(state.frameId, frameIds, 'sticker'),
+    bottleShapeId: pickKnownId(state.bottleShapeId, bottleShapeIds, 'classic'),
     showPercent: Boolean(state.showPercent),
     bottles: state.bottles.slice(0, 36).map((bottle, index) => ({
       id: bottle.id || `bottle-${index + 1}`,
