@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Bottle Rating Generator">
+  <rect width="64" height="64" rx="14" fill="#fff5f8"/>
+  <path d="M26 8h12v12c0 4 8 5 8 15v18c0 3-2 5-5 5H23c-3 0-5-2-5-5V35c0-10 8-11 8-15V8Z" fill="#fff" stroke="#111" stroke-width="4"/>
+  <path d="M22 42c6-4 13 3 20-1v12H22V42Z" fill="#F48FB1" opacity=".85"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#fff5f8"/>
+  <g transform="translate(120 100)">
+    <path d="M92 0h76v110c0 36 70 48 70 130v180c0 42-28 70-70 70H92c-42 0-70-28-70-70V240c0-82 70-94 70-130V0Z" fill="#fff" stroke="#111" stroke-width="22" stroke-linejoin="round"/>
+    <path d="M42 330c70-34 116 28 190-8v120H42V330Z" fill="#F48FB1" opacity=".82"/>
+  </g>
+  <text x="430" y="250" fill="#111" font-size="82" font-family="Arial, sans-serif" font-weight="900">瓶子评价图生成器</text>
+  <text x="430" y="340" fill="#555" font-size="42" font-family="Arial, sans-serif" font-weight="700">Bottle Rating Generator</text>
+  <text x="430" y="420" fill="#777" font-size="34" font-family="Arial, sans-serif">滑动填瓶，生成 9:16 竖版梗图</text>
+</svg>
