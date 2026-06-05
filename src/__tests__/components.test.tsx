@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Bottle } from '../components/Bottle'
 import { BottleGrid } from '../components/BottleGrid'
+import { DecorationPicker } from '../components/DecorationPicker'
 import { ResultCanvas } from '../components/ResultCanvas'
 import { createStateFromTemplate, templates } from '../data/templates'
 
@@ -28,5 +29,22 @@ describe('components', () => {
     render(<ResultCanvas state={state} />)
     expect(screen.getByTestId('result-canvas')).toBeInTheDocument()
     expect(screen.queryByText('保存图片')).not.toBeInTheDocument()
+  })
+
+  it('renders background preview controls', () => {
+    render(
+      <DecorationPicker
+        backgroundId="scrapbook"
+        frameId="sticker"
+        bottleShapeId="classic"
+        onBackgroundChange={() => undefined}
+        onFrameChange={() => undefined}
+        onBottleShapeChange={() => undefined}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /手账贴纸/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /邮票锯齿/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /经典瓶/ })).toBeInTheDocument()
   })
 })

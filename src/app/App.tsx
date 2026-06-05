@@ -45,6 +45,68 @@ function updateBottle(
   return bottles.map((bottle) => (bottle.id === id ? { ...bottle, ...patch } : bottle))
 }
 
+type ActionIcon = 'spark' | 'download' | 'share' | 'edit' | 'home'
+
+function ActionSvg({ icon }: { icon: ActionIcon }) {
+  const common = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    strokeWidth: 2.4,
+  }
+
+  return (
+    <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
+      {icon === 'spark' && (
+        <path
+          {...common}
+          d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"
+        />
+      )}
+      {icon === 'download' && <path {...common} d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14" />}
+      {icon === 'share' && (
+        <path
+          {...common}
+          d="M8.5 13.5l7 4m0-11l-7 4M7 14.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm10 5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm0-11a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"
+        />
+      )}
+      {icon === 'edit' && (
+        <path {...common} d="M4 20h4l11-11a2.8 2.8 0 00-4-4L4 16v4zM13 6l5 5" />
+      )}
+      {icon === 'home' && <path {...common} d="M4 11l8-7 8 7v9h-5v-6H9v6H4v-9z" />}
+    </svg>
+  )
+}
+
+function ActionButton({
+  icon,
+  label,
+  variant = 'secondary',
+  onClick,
+}: {
+  icon: ActionIcon
+  label: string
+  variant?: 'primary' | 'secondary'
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      className={[
+        'flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl px-3 text-xs font-black shadow-sm transition active:scale-[0.97]',
+        variant === 'primary'
+          ? 'bg-neutral-950 text-white'
+          : 'border border-neutral-200 bg-white text-neutral-950',
+      ].join(' ')}
+      onClick={onClick}
+    >
+      <ActionSvg icon={icon} />
+      {label}
+    </button>
+  )
+}
+
 export function App() {
   const [route, setRoute] = useState<AppRoute>(() =>
     readStateFromUrl() ? 'editor' : 'home',
@@ -84,6 +146,7 @@ export function App() {
     setState((current) =>
       current ? { ...current, ...patch, updatedAt: Date.now() } : current,
     )
+    setGeneratedImage(null)
   }
 
   function changeBottleValue(id: string, value: number) {
@@ -219,6 +282,17 @@ export function App() {
               patchState({ bottleShapeId })
             }
           />
+          <section className="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-black text-neutral-950">生成图预览</h2>
+              <span className="text-xs font-bold text-neutral-500">背景/边框实时预览</span>
+            </div>
+            <div className="flex aspect-[9/16] justify-center overflow-hidden rounded-lg bg-[#fff7f4]">
+              <div className="origin-top scale-[0.29]">
+                <ResultCanvas state={state} />
+              </div>
+            </div>
+          </section>
           <Toolbar
             onRandomize={() => patchState({ bottles: randomizeBottles(state.bottles) })}
             onClear={() =>
@@ -236,12 +310,12 @@ export function App() {
           <section className="grid gap-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-black">瓶子矩阵</h2>
-              <div className="flex rounded-lg border border-neutral-200 bg-white p-1">
+              <div className="grid grid-cols-2 rounded-full border border-neutral-200 bg-white p-1 shadow-sm">
                 <button
                   className={
                     editorMode === 'single'
-                      ? 'btn-primary min-h-9 py-1'
-                      : 'btn-secondary min-h-9 py-1'
+                      ? 'min-h-10 rounded-full bg-neutral-950 px-4 py-1 text-sm font-black text-white'
+                      : 'min-h-10 rounded-full px-4 py-1 text-sm font-black text-neutral-500'
                   }
                   type="button"
                   onClick={() => setEditorMode('single')}
@@ -251,8 +325,8 @@ export function App() {
                 <button
                   className={
                     editorMode === 'grid'
-                      ? 'btn-primary min-h-9 py-1'
-                      : 'btn-secondary min-h-9 py-1'
+                      ? 'min-h-10 rounded-full bg-neutral-950 px-4 py-1 text-sm font-black text-white'
+                      : 'min-h-10 rounded-full px-4 py-1 text-sm font-black text-neutral-500'
                   }
                   type="button"
                   onClick={() => setEditorMode('grid')}
@@ -286,16 +360,16 @@ export function App() {
                   shapeId={state.bottleShapeId}
                   onValueChange={changeBottleValue}
                 />
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3 rounded-[24px] bg-neutral-50 p-2">
                   <button
-                    className="btn-secondary"
+                    className="min-h-12 rounded-2xl border border-neutral-200 bg-white text-sm font-black shadow-sm active:scale-[0.98]"
                     type="button"
                     onClick={() => moveSelection(-1)}
                   >
                     上一瓶
                   </button>
                   <button
-                    className="btn-primary"
+                    className="min-h-12 rounded-2xl bg-neutral-950 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                     type="button"
                     onClick={() => moveSelection(1)}
                   >
@@ -348,30 +422,22 @@ export function App() {
               </div>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button className="btn-primary" type="button" onClick={generateImage}>
-              生成预览
-            </button>
-            <button className="btn-primary" type="button" onClick={downloadImage}>
-              下载 PNG
-            </button>
-            <button className="btn-secondary" type="button" onClick={share}>
-              复制分享链接
-            </button>
-            <button
-              className="btn-secondary"
-              type="button"
-              onClick={() => setRoute('editor')}
-            >
-              返回编辑
-            </button>
-            <button
-              className="btn-secondary"
-              type="button"
-              onClick={() => setRoute('home')}
-            >
-              重新制作
-            </button>
+          <div className="sticky bottom-3 z-20 grid grid-cols-5 gap-2 rounded-[24px] border border-neutral-200 bg-white/95 p-2 shadow-xl backdrop-blur">
+            <ActionButton
+              icon="spark"
+              label="生成"
+              variant="primary"
+              onClick={generateImage}
+            />
+            <ActionButton
+              icon="download"
+              label="下载"
+              variant="primary"
+              onClick={downloadImage}
+            />
+            <ActionButton icon="share" label="分享" onClick={share} />
+            <ActionButton icon="edit" label="编辑" onClick={() => setRoute('editor')} />
+            <ActionButton icon="home" label="重做" onClick={() => setRoute('home')} />
           </div>
           {status && (
             <p className="rounded-lg bg-white p-3 text-sm font-bold text-neutral-700">
