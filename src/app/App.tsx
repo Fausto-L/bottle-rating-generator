@@ -257,56 +257,6 @@ export function App() {
 
       {route === 'editor' && state && selectedBottle && (
         <main className="mx-auto grid max-w-3xl gap-6 px-4 py-6">
-          <EditorPanel
-            title={state.title}
-            subtitle={state.subtitle}
-            themeColor={state.themeColor}
-            selectedBottle={selectedBottle}
-            onTitleChange={(title) => patchState({ title: validateTitle(title) })}
-            onSubtitleChange={(subtitle) =>
-              patchState({ subtitle: validateSubtitle(subtitle) })
-            }
-            onThemeChange={(themeColor: ThemeColorId) => patchState({ themeColor })}
-            onLabelChange={changeBottleLabel}
-            onValueChange={changeBottleValue}
-          />
-          <DecorationPicker
-            backgroundId={state.backgroundId}
-            frameId={state.frameId}
-            bottleShapeId={state.bottleShapeId}
-            onBackgroundChange={(backgroundId: BackgroundId) =>
-              patchState({ backgroundId })
-            }
-            onFrameChange={(frameId: FrameId) => patchState({ frameId })}
-            onBottleShapeChange={(bottleShapeId: BottleShapeId) =>
-              patchState({ bottleShapeId })
-            }
-          />
-          <section className="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-black text-neutral-950">生成图预览</h2>
-              <span className="text-xs font-bold text-neutral-500">背景/边框实时预览</span>
-            </div>
-            <div className="flex aspect-[9/16] justify-center overflow-hidden rounded-lg bg-[#fff7f4]">
-              <div className="origin-top scale-[0.29]">
-                <ResultCanvas state={state} />
-              </div>
-            </div>
-          </section>
-          <Toolbar
-            onRandomize={() => patchState({ bottles: randomizeBottles(state.bottles) })}
-            onClear={() =>
-              patchState({
-                bottles: state.bottles.map((bottle) => ({ ...bottle, value: 0 })),
-              })
-            }
-            onFull={() =>
-              patchState({
-                bottles: state.bottles.map((bottle) => ({ ...bottle, value: 100 })),
-              })
-            }
-            onReset={resetCurrentTemplate}
-          />
           <section className="grid gap-4">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-black">瓶子矩阵</h2>
@@ -389,6 +339,56 @@ export function App() {
                 onValueChange={changeBottleValue}
               />
             )}
+          </section>
+          <Toolbar
+            onRandomize={() => patchState({ bottles: randomizeBottles(state.bottles) })}
+            onClear={() =>
+              patchState({
+                bottles: state.bottles.map((bottle) => ({ ...bottle, value: 0 })),
+              })
+            }
+            onFull={() =>
+              patchState({
+                bottles: state.bottles.map((bottle) => ({ ...bottle, value: 100 })),
+              })
+            }
+            onReset={resetCurrentTemplate}
+          />
+          <EditorPanel
+            title={state.title}
+            subtitle={state.subtitle}
+            themeColor={state.themeColor}
+            selectedBottle={selectedBottle}
+            onTitleChange={(title) => patchState({ title: validateTitle(title) })}
+            onSubtitleChange={(subtitle) =>
+              patchState({ subtitle: validateSubtitle(subtitle) })
+            }
+            onThemeChange={(themeColor: ThemeColorId) => patchState({ themeColor })}
+            onLabelChange={changeBottleLabel}
+            onValueChange={changeBottleValue}
+          />
+          <DecorationPicker
+            backgroundId={state.backgroundId}
+            frameId={state.frameId}
+            bottleShapeId={state.bottleShapeId}
+            onBackgroundChange={(backgroundId: BackgroundId) =>
+              patchState({ backgroundId })
+            }
+            onFrameChange={(frameId: FrameId) => patchState({ frameId })}
+            onBottleShapeChange={(bottleShapeId: BottleShapeId) =>
+              patchState({ bottleShapeId })
+            }
+          />
+          <section className="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-black text-neutral-950">生成图预览</h2>
+              <span className="text-xs font-bold text-neutral-500">背景/边框实时预览</span>
+            </div>
+            <div className="flex aspect-[9/16] justify-center overflow-hidden rounded-lg bg-[#fff7f4]">
+              <div className="origin-top scale-[0.29]">
+                <ResultCanvas state={state} />
+              </div>
+            </div>
           </section>
           <button
             className="btn-primary sticky bottom-4 z-10"
