@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import type { Bottle as BottleType } from '../types/bottle'
 import { useBottleDrag } from '../hooks/useBottleDrag'
 import type { BottleShapeId } from '../types/decoration'
@@ -23,6 +23,50 @@ const shapePaths: Record<BottleShapeId, string> = {
   shell: 'M48 13c22 0 38 18 38 43 0 36-16 61-38 61S10 92 10 56c0-25 16-43 38-43Z',
 }
 
+function hashString(value: string): number {
+  let hash = 0
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 9973
+  }
+  return hash
+}
+
+function capForShape(shapeId: BottleShapeId) {
+  if (shapeId === 'star') {
+    return (
+      <path
+        d="M43 31h10l3 12H40l3-12Z"
+        fill="#d8ecff"
+        stroke="#111"
+        strokeLinejoin="round"
+        strokeWidth="4"
+      />
+    )
+  }
+
+  if (shapeId === 'shell') {
+    return (
+      <path
+        d="M38 20c6-7 14-7 20 0l-3 12H41l-3-12Z"
+        fill="#d8ecff"
+        stroke="#111"
+        strokeLinejoin="round"
+        strokeWidth="4"
+      />
+    )
+  }
+
+  return (
+    <path
+      d="M36 1h24v12H36z"
+      fill="#d8ecff"
+      stroke="#111"
+      strokeLinejoin="round"
+      strokeWidth="4"
+    />
+  )
+}
+
 export function Bottle({
   bottle,
   color,
@@ -36,6 +80,7 @@ export function Bottle({
   onSelect,
 }: BottleProps) {
   const reactId = useId()
+  const [tiltOffset, setTiltOffset] = useState(0)
   const { fillRef, activeValue, isDragging, pointerHandlers } = useBottleDrag({
     value: bottle.value,
     onChange: (value) => onValueChange?.(bottle.id, value),
@@ -44,6 +89,30 @@ export function Bottle({
   const liquidY = 108 - liquidHeight
   const clipId = `clip-${reactId.replace(/:/g, '')}-${bottle.id}`
   const outlinePath = shapePaths[shapeId]
+  const wave = useMemo(() => {
+    const seed = hashString(`${bottle.id}-${bottle.value}-${shapeId}`)
+    return {
+      amplitude: 4 + (seed % 5),
+      phase: (seed % 11) - 5,
+      pull: 12 + (seed % 10),
+      offset: (seed % 9) - 4,
+    }
+  }, [bottle.id, bottle.value, shapeId])
+  const liveTiltOffset = editable && focus && !poster ? tiltOffset : 0
+  const waveY = liquidY + wave.offset
+
+  useEffect(() => {
+    if (!editable || !focus || poster) return
+    if (!('DeviceOrientationEvent' in window)) return
+
+    function handleOrientation(event: DeviceOrientationEvent) {
+      const gamma = event.gamma ?? 0
+      setTiltOffset(Math.max(-7, Math.min(7, gamma / 6)))
+    }
+
+    window.addEventListener('deviceorientation', handleOrientation)
+    return () => window.removeEventListener('deviceorientation', handleOrientation)
+  }, [editable, focus, poster])
 
   return (
     <button
@@ -85,20 +154,28 @@ export function Bottle({
           strokeLinejoin="round"
           strokeWidth="6"
         />
+        {capForShape(shapeId)}
         <rect ref={fillRef} x="18" y="32" width="60" height="76" fill="transparent" />
         <g clipPath={`url(#${clipId})`}>
-          <path
-            d={`M8 ${liquidY} C20 ${liquidY - 6}, 32 ${liquidY + 6}, 44 ${liquidY} S68 ${liquidY - 6}, 88 ${liquidY} V128 H8 Z`}
-            fill={color}
-            opacity="0.78"
-          />
-          <path
-            d={`M8 ${liquidY} C20 ${liquidY - 6}, 32 ${liquidY + 6}, 44 ${liquidY} S68 ${liquidY - 6}, 88 ${liquidY}`}
-            fill="none"
-            stroke={color}
-            strokeLinecap="round"
-            strokeWidth="5"
-          />
+          <g
+            className={poster ? undefined : 'bottle-liquid-bob'}
+            transform={`translate(${liveTiltOffset} 0)`}
+          >
+            <path
+              className={poster ? undefined : 'bottle-liquid-wave'}
+              d={`M4 ${waveY} C${18 + wave.phase} ${waveY - wave.amplitude}, ${34 + wave.phase} ${waveY + wave.amplitude}, ${48} ${waveY} S${72 - wave.phase} ${waveY - wave.amplitude}, 92 ${waveY + wave.pull / 8} V128 H4 Z`}
+              fill={color}
+              opacity="0.78"
+            />
+            <path
+              className={poster ? undefined : 'bottle-liquid-wave'}
+              d={`M4 ${waveY} C${18 + wave.phase} ${waveY - wave.amplitude}, ${34 + wave.phase} ${waveY + wave.amplitude}, ${48} ${waveY} S${72 - wave.phase} ${waveY - wave.amplitude}, 92 ${waveY + wave.pull / 8}`}
+              fill="none"
+              stroke={color}
+              strokeLinecap="round"
+              strokeWidth="5"
+            />
+          </g>
         </g>
         {showPercent && (
           <text

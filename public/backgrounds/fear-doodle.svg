@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <rect width="1080" height="1920" fill="#fbfaf6"/>
+  <filter id="paper">
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="4" seed="31"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer>
+      <feFuncA type="table" tableValues="0 0.07"/>
+    </feComponentTransfer>
+  </filter>
+  <rect width="1080" height="1920" filter="url(#paper)" opacity="0.5"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M70 250c54-56 106-56 156 0 58-58 112-54 162 10" stroke="#1c1c1c" stroke-width="9" opacity="0.08"/>
+    <path d="M792 254c34 44 34 96 0 140-34-44-34-96 0-140z" stroke="#1c1c1c" stroke-width="9" opacity="0.1"/>
+    <circle cx="792" cy="326" r="9" fill="#1c1c1c" opacity="0.12"/>
+    <path d="M182 1458c50-34 98-34 146 0 52 36 102 34 150-4" stroke="#76515f" stroke-width="14" opacity="0.14"/>
+    <path d="M842 1430c40 18 68 48 84 90m-118-30c40-2 78 10 112 36" stroke="#1c1c1c" stroke-width="10" opacity="0.1"/>
+    <path d="M118 1690l32-38 34 38 34-38 32 38" stroke="#1c1c1c" stroke-width="8" opacity="0.1"/>
+    <path d="M842 164l40 40m0-40l-40 40" stroke="#d78aa5" stroke-width="8" opacity="0.2"/>
+    <path d="M132 532q42-48 84 0t84 0" stroke="#d78aa5" stroke-width="10" opacity="0.14"/>
+  </g>
+  <g fill="#1c1c1c" opacity="0.06">
+    <circle cx="930" cy="620" r="24"/>
+    <circle cx="142" cy="1190" r="18"/>
+    <circle cx="878" cy="1170" r="13"/>
+  </g>
+</svg>

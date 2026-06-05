@@ -61,6 +61,24 @@ describe('core utilities', () => {
     expect(normalized.bottleShapeId).toBe('classic')
   })
 
+  it('keeps themed decoration ids during normalization', () => {
+    const themed = createStateFromTemplate(templates[2])
+    const normalized = normalizeState({
+      ...themed,
+      backgroundId: 'film',
+      frameId: 'film',
+    })
+
+    expect(normalized.backgroundId).toBe('film')
+    expect(normalized.frameId).toBe('film')
+  })
+
+  it('applies default decorations from themed templates', () => {
+    expect(createStateFromTemplate(templates[2]).backgroundId).toBe('film')
+    expect(createStateFromTemplate(templates[3]).backgroundId).toBe('fear')
+    expect(createStateFromTemplate(templates[4]).backgroundId).toBe('pixel')
+  })
+
   it('creates a stable PNG filename', () => {
     expect(createPngFilename(new Date('2026-06-05T00:00:00+08:00'))).toBe(
       'bottle-rating-20260605.png',

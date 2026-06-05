@@ -57,6 +57,7 @@ export function ResultCanvas({ state }: ResultCanvasProps) {
               bottles={state.bottles}
               color={color}
               poster
+              showPercent={state.showPercent}
               shapeId={state.bottleShapeId}
             />
           </div>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <rect width="1080" height="1920" fill="#f7fff8"/>
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#3dbb65" stroke-width="2" opacity="0.08"/>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#grid)"/>
+  <g opacity="0.13">
+    <rect x="72" y="142" width="48" height="48" fill="#23c55e"/>
+    <rect x="120" y="142" width="48" height="48" fill="#23c55e"/>
+    <rect x="168" y="142" width="48" height="48" fill="#12b3c7"/>
+    <rect x="858" y="226" width="48" height="48" fill="#f6c343"/>
+    <rect x="906" y="226" width="48" height="48" fill="#f6c343"/>
+    <rect x="810" y="274" width="48" height="48" fill="#12b3c7"/>
+    <rect x="168" y="1578" width="48" height="48" fill="#12b3c7"/>
+    <rect x="216" y="1578" width="48" height="48" fill="#23c55e"/>
+    <rect x="264" y="1626" width="48" height="48" fill="#f6c343"/>
+    <rect x="810" y="1518" width="48" height="48" fill="#23c55e"/>
+    <rect x="858" y="1518" width="48" height="48" fill="#12b3c7"/>
+  </g>
+  <g fill="none" stroke="#111" stroke-width="8" opacity="0.08">
+    <path d="M126 352h96v96h-96z"/>
+    <path d="M842 418h48v48h48v48h-48v48h-48v-48h-48v-48h48z"/>
+    <path d="M138 1358h48v48h48v48h-48v48h-48v-48H90v-48h48z"/>
+  </g>
+</svg>

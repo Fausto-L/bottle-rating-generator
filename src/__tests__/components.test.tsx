@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../app/App'
 import { Bottle } from '../components/Bottle'
 import { BottleGrid } from '../components/BottleGrid'
+import { ColorPicker } from '../components/ColorPicker'
 import { DecorationPicker } from '../components/DecorationPicker'
 import { ResultCanvas } from '../components/ResultCanvas'
 import { TemplateSelector } from '../components/TemplateSelector'
@@ -57,6 +58,16 @@ describe('components', () => {
     expect(screen.getByRole('button', { name: /经典瓶/ })).toBeInTheDocument()
   })
 
+  it('renders color dots and shows a color toast', () => {
+    render(<ColorPicker value="pink" onChange={() => undefined} />)
+
+    expect(screen.getByRole('radio', { name: '粉色' })).toBeInTheDocument()
+    expect(screen.queryByText('粉色')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('radio', { name: '绿色' }))
+    expect(screen.getByText('绿色')).toBeInTheDocument()
+  })
+
   it('renders six template entries with custom last', () => {
     render(<TemplateSelector onSelect={() => undefined} />)
     const buttons = screen.getAllByRole('button')
@@ -85,6 +96,30 @@ describe('components', () => {
     expect(screen.getByText('瓶子矩阵')).toBeInTheDocument()
     expect(screen.getByText('主标题')).toBeInTheDocument()
     expect(screen.getByText('生成图背景')).toBeInTheDocument()
+  })
+
+  it('shows percent toggle in the decorate step', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /影视风格瓶子/ }))
+    fireEvent.click(screen.getByRole('button', { name: /下一步：查看预览/ }))
+
+    expect(screen.getByRole('switch', { name: /显示百分比/ })).toBeInTheDocument()
+    expect(screen.getByText('胶片影院')).toBeInTheDocument()
+  })
+
+  it('hides percent text from result canvas when disabled', () => {
+    const state = createStateFromTemplate(templates[0])
+    const filledState = {
+      ...state,
+      showPercent: false,
+      bottles: state.bottles.map((bottle) => ({ ...bottle, value: 75 })),
+    }
+
+    render(<ResultCanvas state={filledState} />)
+
+    expect(screen.queryByText('75%')).not.toBeInTheDocument()
   })
 
   it('renders icon toolbar actions', () => {

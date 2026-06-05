@@ -11,6 +11,9 @@ export const posterBackgrounds: PosterBackground[] = [
   { id: 'scrapbook', name: '手账贴纸', file: 'backgrounds/scrapbook.png' },
   { id: 'cream', name: '奶油纸纹', file: 'backgrounds/cream-paper.png' },
   { id: 'doodle', name: '涂鸦边角', file: 'backgrounds/doodle-corners.png' },
+  { id: 'film', name: '胶片影院', file: 'backgrounds/film-strip.svg' },
+  { id: 'fear', name: '轻恐怖', file: 'backgrounds/fear-doodle.svg' },
+  { id: 'pixel', name: '像素游戏', file: 'backgrounds/pixel-game.svg' },
 ]
 
 export const posterFrames: PosterFrame[] = [
@@ -18,6 +21,9 @@ export const posterFrames: PosterFrame[] = [
   { id: 'stamp', name: '邮票锯齿' },
   { id: 'photo', name: '褪色相片' },
   { id: 'window', name: '苹果窗口' },
+  { id: 'film', name: '胶片边框' },
+  { id: 'dark', name: '暗黑手绘' },
+  { id: 'pixel', name: '像素边框' },
 ]
 
 export const bottleShapes: BottleShape[] = [

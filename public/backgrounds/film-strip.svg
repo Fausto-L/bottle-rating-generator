@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <rect width="1080" height="1920" fill="#fff8f0"/>
+  <filter id="grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="12"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer>
+      <feFuncA type="table" tableValues="0 0.08"/>
+    </feComponentTransfer>
+  </filter>
+  <rect width="1080" height="1920" filter="url(#grain)" opacity="0.45"/>
+  <g opacity="0.1" fill="#111">
+    <path d="M36 0h92v1920H36zM952 0h92v1920h-92z"/>
+    <g>
+      <rect x="54" y="24" width="56" height="36" rx="8"/>
+      <rect x="970" y="24" width="56" height="36" rx="8"/>
+    </g>
+    <g transform="translate(0 96)">
+      <rect x="54" y="24" width="56" height="36" rx="8"/>
+      <rect x="970" y="24" width="56" height="36" rx="8"/>
+    </g>
+    <g transform="translate(0 192)">
+      <rect x="54" y="24" width="56" height="36" rx="8"/>
+      <rect x="970" y="24" width="56" height="36" rx="8"/>
+    </g>
+    <g transform="translate(0 288)">
+      <rect x="54" y="24" width="56" height="36" rx="8"/>
+      <rect x="970" y="24" width="56" height="36" rx="8"/>
+    </g>
+    <g transform="translate(0 384)">
+      <rect x="54" y="24" width="56" height="36" rx="8"/>
+      <rect x="970" y="24" width="56" height="36" rx="8"/>
+    </g>
+  </g>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M208 168c124 46 224 50 330 10" stroke="#e9b04d" stroke-width="18" opacity="0.16"/>
+    <path d="M660 1606c98-42 194-38 282 12" stroke="#9d7be8" stroke-width="16" opacity="0.12"/>
+    <path d="M784 228l44 44m0-44l-44 44" stroke="#111" stroke-width="8" opacity="0.1"/>
+    <path d="M186 1590l52-70 58 66" stroke="#111" stroke-width="9" opacity="0.08"/>
+    <rect x="210" y="1422" width="164" height="92" rx="10" stroke="#111" stroke-width="8" opacity="0.08"/>
+  </g>
+</svg>

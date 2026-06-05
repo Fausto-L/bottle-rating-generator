@@ -341,7 +341,7 @@ export function App() {
               color={color}
               editable
               focus
-              showPercent
+              showPercent={state.showPercent}
               shapeId={state.bottleShapeId}
               onValueChange={changeBottleValue}
             />
@@ -410,6 +410,32 @@ export function App() {
             value={state.themeColor}
             onChange={(themeColor: ThemeColorId) => patchState({ themeColor })}
           />
+        </section>
+        <section className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
+          <div>
+            <h2 className="text-xs font-black text-neutral-950">显示百分比</h2>
+            <p className="mt-1 text-xs font-semibold text-neutral-500">
+              控制预览和导出图中的水位数字
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="显示百分比"
+            aria-checked={state.showPercent}
+            className={[
+              'relative h-8 w-14 rounded-full transition',
+              state.showPercent ? 'bg-neutral-950' : 'bg-neutral-200',
+            ].join(' ')}
+            onClick={() => patchState({ showPercent: !state.showPercent })}
+          >
+            <span
+              className={[
+                'absolute top-1 h-6 w-6 rounded-full bg-white shadow transition',
+                state.showPercent ? 'left-7' : 'left-1',
+              ].join(' ')}
+            />
+          </button>
         </section>
         <DecorationPicker
           backgroundId={state.backgroundId}

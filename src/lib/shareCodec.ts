@@ -9,8 +9,23 @@ import {
   validateTitle,
 } from './validation'
 
-const backgroundIds = ['scrapbook', 'cream', 'doodle'] satisfies BackgroundId[]
-const frameIds = ['sticker', 'stamp', 'photo', 'window'] satisfies FrameId[]
+const backgroundIds = [
+  'scrapbook',
+  'cream',
+  'doodle',
+  'film',
+  'fear',
+  'pixel',
+] satisfies BackgroundId[]
+const frameIds = [
+  'sticker',
+  'stamp',
+  'photo',
+  'window',
+  'film',
+  'dark',
+  'pixel',
+] satisfies FrameId[]
 const bottleShapeIds = ['classic', 'star', 'shell'] satisfies BottleShapeId[]
 
 function pickKnownId<T extends string>(value: unknown, ids: readonly T[], fallback: T): T {
@@ -31,7 +46,7 @@ export function normalizeState(
     backgroundId: pickKnownId(state.backgroundId, backgroundIds, 'scrapbook'),
     frameId: pickKnownId(state.frameId, frameIds, 'sticker'),
     bottleShapeId: pickKnownId(state.bottleShapeId, bottleShapeIds, 'classic'),
-    showPercent: Boolean(state.showPercent),
+    showPercent: typeof state.showPercent === 'boolean' ? state.showPercent : true,
     bottles: state.bottles.slice(0, 36).map((bottle, index) => ({
       id: bottle.id || `bottle-${index + 1}`,
       label: validateLabel(bottle.label),

@@ -88,7 +88,7 @@ export function DecorationPicker({
               key={shape.id}
               type="button"
               className={[
-                'grid min-h-[92px] justify-items-center gap-1 rounded-lg border p-1.5 transition active:scale-[0.98]',
+                'grid min-h-[118px] justify-items-center gap-1 rounded-lg border p-1.5 transition active:scale-[0.98]',
                 bottleShapeId === shape.id
                   ? 'border-neutral-950 bg-neutral-100 text-neutral-950 ring-2 ring-neutral-950/10'
                   : 'border-neutral-200 bg-white text-neutral-950',
@@ -96,8 +96,8 @@ export function DecorationPicker({
               onClick={() => onBottleShapeChange(shape.id)}
               aria-pressed={bottleShapeId === shape.id}
             >
-              <div className="flex h-14 items-center justify-center overflow-hidden">
-                <div className="scale-[0.48]">
+              <div className="flex h-20 items-center justify-center overflow-visible">
+                <div className="scale-[0.58]">
                   <Bottle
                     bottle={{ id: `preview-${shape.id}`, label: '', value: 55 }}
                     color="#F48FB1"

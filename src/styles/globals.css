@@ -112,6 +112,35 @@
   z-index: 1;
 }
 
+.poster-frame-film {
+  border: 8px solid #111111;
+  border-radius: 20px;
+  box-shadow:
+    inset 0 0 0 18px rgba(17, 17, 17, 0.08),
+    12px 12px 0 rgba(17, 17, 17, 0.14);
+  outline: 12px dashed rgba(17, 17, 17, 0.72);
+  outline-offset: -26px;
+}
+
+.poster-frame-dark {
+  border: 7px solid #1f1f1f;
+  border-radius: 24px;
+  box-shadow:
+    10px 10px 0 rgba(17, 17, 17, 0.2),
+    inset 0 0 0 5px rgba(120, 80, 105, 0.16);
+  outline: 4px solid rgba(31, 31, 31, 0.45);
+  outline-offset: -16px;
+}
+
+.poster-frame-pixel {
+  border: 8px solid #111111;
+  border-radius: 8px;
+  box-shadow:
+    12px 12px 0 rgba(35, 197, 94, 0.22),
+    inset 0 0 0 8px rgba(18, 179, 199, 0.12);
+  image-rendering: pixelated;
+}
+
 .decoration-frame-preview {
   align-items: center;
   background: #fff8f4;
@@ -159,4 +188,73 @@
   position: absolute;
   right: 0;
   top: 0;
+}
+
+.decoration-frame-preview-film {
+  border-radius: 4px;
+  outline: 4px dashed #111111;
+  outline-offset: -9px;
+}
+
+.decoration-frame-preview-dark {
+  background: #f9f5f7;
+  box-shadow: inset 0 0 0 3px rgba(31, 31, 31, 0.18);
+  outline: 2px solid rgba(31, 31, 31, 0.45);
+  outline-offset: -7px;
+}
+
+.decoration-frame-preview-pixel {
+  border-radius: 2px;
+  box-shadow:
+    inset 0 0 0 4px rgba(35, 197, 94, 0.2),
+    3px 3px 0 rgba(18, 179, 199, 0.22);
+}
+
+.bottle-liquid-wave {
+  animation: bottle-wave-drift 2.6s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.bottle-liquid-bob {
+  animation: bottle-wave-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes bottle-wave-drift {
+  from {
+    transform: translateX(-4px);
+  }
+  to {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes bottle-wave-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes color-toast {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -40%) scale(0.96);
+  }
+  18%,
+  78% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -58%) scale(0.98);
+  }
+}
+
+.animate-color-toast {
+  animation: color-toast 1.2s ease both;
 }
