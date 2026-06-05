@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { Bottle } from '../components/Bottle'
 import { BottleGrid } from '../components/BottleGrid'
+import { ColorPicker } from '../components/ColorPicker'
 import { DecorationPicker } from '../components/DecorationPicker'
 import { EditorPanel } from '../components/EditorPanel'
 import { Header } from '../components/Header'
@@ -12,6 +13,7 @@ import { getThemeColor } from '../data/themeColors'
 import { useLocalDraft } from '../hooks/useLocalDraft'
 import { copyShareLink, readStateFromUrl } from '../hooks/useShareState'
 import { createPngFilename, downloadDataUrl, exportNodeToPng } from '../lib/exportImage'
+import { shouldAskToRestoreDraft } from '../lib/draftPrompt'
 import { randomizeBottles } from '../lib/randomize'
 import { loadDraft } from '../lib/storage'
 import { getSummaryText } from '../lib/summary'
@@ -27,14 +29,25 @@ import type { Bottle as BottleType } from '../types/bottle'
 import type { BackgroundId, BottleShapeId, FrameId } from '../types/decoration'
 import type { ThemeColorId } from '../types/theme'
 
-function getInitialState(): AppState | null {
+type InitialApp = {
+  route: AppRoute
+  state: AppState | null
+}
+
+function getInitialApp(): InitialApp {
   const sharedState = readStateFromUrl()
-  if (sharedState) return sharedState
+  if (sharedState) return { route: 'decorate', state: sharedState }
 
   const draft = loadDraft()
-  if (draft && window.confirm('检测到本地草稿，是否继续编辑？')) return draft
+  if (
+    draft &&
+    shouldAskToRestoreDraft() &&
+    window.confirm('检测到本地草稿，是否继续编辑？')
+  ) {
+    return { route: draft.templateId === 'blank' ? 'custom' : 'fill', state: draft }
+  }
 
-  return null
+  return { route: 'home', state: null }
 }
 
 function updateBottle(
@@ -107,11 +120,41 @@ function ActionButton({
   )
 }
 
-export function App() {
-  const [route, setRoute] = useState<AppRoute>(() =>
-    readStateFromUrl() ? 'editor' : 'home',
+function StepHeader({
+  title,
+  subtitle,
+  onHome,
+  onBack,
+}: {
+  title: string
+  subtitle: string
+  onHome: () => void
+  onBack?: () => void
+}) {
+  return (
+    <section className="flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <h1 className="text-xl font-black text-neutral-950">{title}</h1>
+        <p className="mt-1 text-sm font-semibold text-neutral-500">{subtitle}</p>
+      </div>
+      <div className="flex shrink-0 gap-2">
+        {onBack && (
+          <button className="btn-secondary min-h-10 px-3" type="button" onClick={onBack}>
+            返回
+          </button>
+        )}
+        <button className="btn-secondary min-h-10 px-3" type="button" onClick={onHome}>
+          主页
+        </button>
+      </div>
+    </section>
   )
-  const [state, setState] = useState<AppState | null>(() => getInitialState())
+}
+
+export function App() {
+  const [initialApp] = useState(() => getInitialApp())
+  const [route, setRoute] = useState<AppRoute>(initialApp.route)
+  const [state, setState] = useState<AppState | null>(initialApp.state)
   const [selectedId, setSelectedId] = useState('bottle-1')
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
   const [editorMode, setEditorMode] = useState<'single' | 'grid'>('single')
@@ -132,6 +175,7 @@ export function App() {
     0,
     state?.bottles.findIndex((bottle) => bottle.id === selectedId) ?? 0,
   )
+  const isCustomTemplate = state?.templateId === 'blank'
 
   function startTemplate(templateId: string) {
     const next = createStateFromTemplate(getTemplate(templateId))
@@ -139,7 +183,7 @@ export function App() {
     setSelectedId(next.bottles[0].id)
     setGeneratedImage(null)
     setStatus('')
-    setRoute('editor')
+    setRoute(templateId === 'blank' ? 'custom' : 'fill')
   }
 
   function patchState(patch: Partial<AppState>) {
@@ -229,14 +273,179 @@ export function App() {
     startTemplate(state.templateId)
   }
 
+  function goHome() {
+    setRoute('home')
+    setStatus('')
+  }
+
+  function goBackFromDecorate() {
+    setRoute(isCustomTemplate ? 'custom' : 'fill')
+    setStatus('')
+  }
+
+  function editFromResult() {
+    setRoute(isCustomTemplate ? 'custom' : 'decorate')
+    setStatus('')
+  }
+
+  function renderBottleEditor() {
+    if (!state || !selectedBottle) return null
+
+    return (
+      <section className="grid gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-black">瓶子矩阵</h2>
+          <div className="grid grid-cols-2 rounded-full border border-neutral-200 bg-white p-1 shadow-sm">
+            <button
+              className={
+                editorMode === 'single'
+                  ? 'min-h-10 rounded-full bg-neutral-950 px-4 py-1 text-sm font-black text-white'
+                  : 'min-h-10 rounded-full px-4 py-1 text-sm font-black text-neutral-500'
+              }
+              type="button"
+              onClick={() => setEditorMode('single')}
+            >
+              逐题填写
+            </button>
+            <button
+              className={
+                editorMode === 'grid'
+                  ? 'min-h-10 rounded-full bg-neutral-950 px-4 py-1 text-sm font-black text-white'
+                  : 'min-h-10 rounded-full px-4 py-1 text-sm font-black text-neutral-500'
+              }
+              type="button"
+              onClick={() => setEditorMode('grid')}
+            >
+              网格总览
+            </button>
+          </div>
+        </div>
+        {editorMode === 'single' ? (
+          <div
+            className="grid gap-4 rounded-lg border border-neutral-200 bg-white p-5 text-center shadow-sm"
+            onTouchStart={(event) => {
+              touchStartX.current = event.touches[0]?.clientX ?? null
+            }}
+            onTouchEnd={(event) => {
+              handleSingleTouchEnd(event.changedTouches[0]?.clientX ?? 0)
+            }}
+          >
+            <div className="flex items-center justify-between text-sm font-black text-neutral-500">
+              <span>
+                第 {selectedIndex + 1} / {state.bottles.length} 瓶
+              </span>
+              <span>还剩 {state.bottles.length - selectedIndex - 1} 道</span>
+            </div>
+            <Bottle
+              bottle={selectedBottle}
+              color={color}
+              editable
+              focus
+              showPercent
+              shapeId={state.bottleShapeId}
+              onValueChange={changeBottleValue}
+            />
+            <div className="grid grid-cols-2 gap-3 rounded-[24px] bg-neutral-50 p-2">
+              <button
+                className="min-h-12 rounded-2xl border border-neutral-200 bg-white text-sm font-black shadow-sm active:scale-[0.98]"
+                type="button"
+                onClick={() => moveSelection(-1)}
+              >
+                上一瓶
+              </button>
+              <button
+                className="min-h-12 rounded-2xl bg-neutral-950 text-sm font-black text-white shadow-sm active:scale-[0.98]"
+                type="button"
+                onClick={() => moveSelection(1)}
+              >
+                下一瓶
+              </button>
+            </div>
+          </div>
+        ) : (
+          <BottleGrid
+            bottles={state.bottles}
+            color={color}
+            editable
+            showPercent={state.showPercent}
+            selectedId={selectedId}
+            shapeId={state.bottleShapeId}
+            onSelect={setSelectedId}
+            onValueChange={changeBottleValue}
+          />
+        )}
+      </section>
+    )
+  }
+
+  function renderToolbar() {
+    if (!state) return null
+
+    return (
+      <Toolbar
+        onRandomize={() => patchState({ bottles: randomizeBottles(state.bottles) })}
+        onClear={() =>
+          patchState({
+            bottles: state.bottles.map((bottle) => ({ ...bottle, value: 0 })),
+          })
+        }
+        onFull={() =>
+          patchState({
+            bottles: state.bottles.map((bottle) => ({ ...bottle, value: 100 })),
+          })
+        }
+        onReset={resetCurrentTemplate}
+      />
+    )
+  }
+
+  function renderDecorationControls() {
+    if (!state) return null
+
+    return (
+      <>
+        <section className="grid gap-2 rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
+          <span className="text-xs font-black text-neutral-950">液体颜色</span>
+          <ColorPicker
+            value={state.themeColor}
+            onChange={(themeColor: ThemeColorId) => patchState({ themeColor })}
+          />
+        </section>
+        <DecorationPicker
+          backgroundId={state.backgroundId}
+          frameId={state.frameId}
+          bottleShapeId={state.bottleShapeId}
+          onBackgroundChange={(backgroundId: BackgroundId) => patchState({ backgroundId })}
+          onFrameChange={(frameId: FrameId) => patchState({ frameId })}
+          onBottleShapeChange={(bottleShapeId: BottleShapeId) =>
+            patchState({ bottleShapeId })
+          }
+        />
+      </>
+    )
+  }
+
+  function renderPreview() {
+    if (!state) return null
+
+    return (
+      <section className="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-black text-neutral-950">生成图预览</h2>
+          <span className="text-xs font-bold text-neutral-500">背景/边框实时预览</span>
+        </div>
+        <div className="flex aspect-[9/16] justify-center overflow-hidden rounded-lg bg-[#fff7f4]">
+          <div className="origin-top scale-[0.29]">
+            <ResultCanvas state={state} />
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-neutral-50">
-      <Header
-        onHome={() => {
-          setRoute('home')
-          setStatus('')
-        }}
-      />
+      <Header onHome={goHome} />
 
       {route === 'home' && (
         <main className="mx-auto grid max-w-3xl gap-8 px-4 py-8">
@@ -255,105 +464,37 @@ export function App() {
         </main>
       )}
 
-      {route === 'editor' && state && selectedBottle && (
+      {route === 'fill' && state && selectedBottle && (
         <main className="mx-auto grid max-w-3xl gap-6 px-4 py-6">
-          <section className="grid gap-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-black">瓶子矩阵</h2>
-              <div className="grid grid-cols-2 rounded-full border border-neutral-200 bg-white p-1 shadow-sm">
-                <button
-                  className={
-                    editorMode === 'single'
-                      ? 'min-h-10 rounded-full bg-neutral-950 px-4 py-1 text-sm font-black text-white'
-                      : 'min-h-10 rounded-full px-4 py-1 text-sm font-black text-neutral-500'
-                  }
-                  type="button"
-                  onClick={() => setEditorMode('single')}
-                >
-                  逐题填写
-                </button>
-                <button
-                  className={
-                    editorMode === 'grid'
-                      ? 'min-h-10 rounded-full bg-neutral-950 px-4 py-1 text-sm font-black text-white'
-                      : 'min-h-10 rounded-full px-4 py-1 text-sm font-black text-neutral-500'
-                  }
-                  type="button"
-                  onClick={() => setEditorMode('grid')}
-                >
-                  网格总览
-                </button>
-              </div>
-            </div>
-            {editorMode === 'single' ? (
-              <div
-                className="grid gap-4 rounded-lg border border-neutral-200 bg-white p-5 text-center shadow-sm"
-                onTouchStart={(event) => {
-                  touchStartX.current = event.touches[0]?.clientX ?? null
-                }}
-                onTouchEnd={(event) => {
-                  handleSingleTouchEnd(event.changedTouches[0]?.clientX ?? 0)
-                }}
-              >
-                <div className="flex items-center justify-between text-sm font-black text-neutral-500">
-                  <span>
-                    第 {selectedIndex + 1} / {state.bottles.length} 瓶
-                  </span>
-                  <span>还剩 {state.bottles.length - selectedIndex - 1} 道</span>
-                </div>
-                <Bottle
-                  bottle={selectedBottle}
-                  color={color}
-                  editable
-                  focus
-                  showPercent
-                  shapeId={state.bottleShapeId}
-                  onValueChange={changeBottleValue}
-                />
-                <div className="grid grid-cols-2 gap-3 rounded-[24px] bg-neutral-50 p-2">
-                  <button
-                    className="min-h-12 rounded-2xl border border-neutral-200 bg-white text-sm font-black shadow-sm active:scale-[0.98]"
-                    type="button"
-                    onClick={() => moveSelection(-1)}
-                  >
-                    上一瓶
-                  </button>
-                  <button
-                    className="min-h-12 rounded-2xl bg-neutral-950 text-sm font-black text-white shadow-sm active:scale-[0.98]"
-                    type="button"
-                    onClick={() => moveSelection(1)}
-                  >
-                    下一瓶
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <BottleGrid
-                bottles={state.bottles}
-                color={color}
-                editable
-                showPercent={state.showPercent}
-                selectedId={selectedId}
-                shapeId={state.bottleShapeId}
-                onSelect={setSelectedId}
-                onValueChange={changeBottleValue}
-              />
-            )}
-          </section>
-          <Toolbar
-            onRandomize={() => patchState({ bottles: randomizeBottles(state.bottles) })}
-            onClear={() =>
-              patchState({
-                bottles: state.bottles.map((bottle) => ({ ...bottle, value: 0 })),
-              })
-            }
-            onFull={() =>
-              patchState({
-                bottles: state.bottles.map((bottle) => ({ ...bottle, value: 100 })),
-              })
-            }
-            onReset={resetCurrentTemplate}
+          <StepHeader
+            title={state.title}
+            subtitle="先把 36 个瓶子填完，下一步再选背景和样式。"
+            onHome={goHome}
           />
+          {renderBottleEditor()}
+          {renderToolbar()}
+          <button
+            className="btn-primary sticky bottom-4 z-10"
+            type="button"
+            onClick={() => {
+              setRoute('decorate')
+              setStatus('')
+            }}
+          >
+            下一步：查看预览
+          </button>
+        </main>
+      )}
+
+      {route === 'custom' && state && selectedBottle && (
+        <main className="mx-auto grid max-w-3xl gap-6 px-4 py-6">
+          <StepHeader
+            title="自定义瓶子"
+            subtitle="标题、标签、瓶子和生成图样式都可以改。"
+            onHome={goHome}
+          />
+          {renderBottleEditor()}
+          {renderToolbar()}
           <EditorPanel
             title={state.title}
             subtitle={state.subtitle}
@@ -367,29 +508,31 @@ export function App() {
             onLabelChange={changeBottleLabel}
             onValueChange={changeBottleValue}
           />
-          <DecorationPicker
-            backgroundId={state.backgroundId}
-            frameId={state.frameId}
-            bottleShapeId={state.bottleShapeId}
-            onBackgroundChange={(backgroundId: BackgroundId) =>
-              patchState({ backgroundId })
-            }
-            onFrameChange={(frameId: FrameId) => patchState({ frameId })}
-            onBottleShapeChange={(bottleShapeId: BottleShapeId) =>
-              patchState({ bottleShapeId })
-            }
+          {renderDecorationControls()}
+          {renderPreview()}
+          <button
+            className="btn-primary sticky bottom-4 z-10"
+            type="button"
+            onClick={() => {
+              setRoute('decorate')
+              setStatus('')
+            }}
+          >
+            查看最终预览
+          </button>
+        </main>
+      )}
+
+      {route === 'decorate' && state && (
+        <main className="mx-auto grid max-w-3xl gap-6 px-4 py-6">
+          <StepHeader
+            title="选择生成图样式"
+            subtitle="确认背景、瓶子外观和颜色，再生成图片。"
+            onHome={goHome}
+            onBack={goBackFromDecorate}
           />
-          <section className="grid gap-3 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-black text-neutral-950">生成图预览</h2>
-              <span className="text-xs font-bold text-neutral-500">背景/边框实时预览</span>
-            </div>
-            <div className="flex aspect-[9/16] justify-center overflow-hidden rounded-lg bg-[#fff7f4]">
-              <div className="origin-top scale-[0.29]">
-                <ResultCanvas state={state} />
-              </div>
-            </div>
-          </section>
+          {renderDecorationControls()}
+          {renderPreview()}
           <button
             className="btn-primary sticky bottom-4 z-10"
             type="button"
@@ -436,8 +579,8 @@ export function App() {
               onClick={downloadImage}
             />
             <ActionButton icon="share" label="分享" onClick={share} />
-            <ActionButton icon="edit" label="编辑" onClick={() => setRoute('editor')} />
-            <ActionButton icon="home" label="重做" onClick={() => setRoute('home')} />
+            <ActionButton icon="edit" label="编辑" onClick={editFromResult} />
+            <ActionButton icon="home" label="重做" onClick={goHome} />
           </div>
           {status && (
             <p className="rounded-lg bg-white p-3 text-sm font-bold text-neutral-700">

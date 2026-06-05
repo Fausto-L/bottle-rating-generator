@@ -1,1 +1,1 @@
-export type AppRoute = 'home' | 'editor' | 'result'
+export type AppRoute = 'home' | 'fill' | 'custom' | 'decorate' | 'result'

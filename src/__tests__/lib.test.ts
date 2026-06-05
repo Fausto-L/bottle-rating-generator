@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createStateFromTemplate, templates } from '../data/templates'
 import { clamp } from '../lib/clamp'
+import { shouldAskToRestoreDraft } from '../lib/draftPrompt'
 import { createPngFilename, downloadDataUrl } from '../lib/exportImage'
 import { snapValue } from '../lib/fill'
 import { randomBottleValue } from '../lib/randomize'
@@ -81,5 +82,11 @@ describe('core utilities', () => {
     expect(appendChild).toHaveBeenCalled()
     expect(click).toHaveBeenCalled()
     vi.restoreAllMocks()
+  })
+
+  it('asks to restore a draft once per session', () => {
+    window.sessionStorage.clear()
+    expect(shouldAskToRestoreDraft()).toBe(true)
+    expect(shouldAskToRestoreDraft()).toBe(false)
   })
 })
