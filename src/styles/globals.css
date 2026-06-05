@@ -116,9 +116,9 @@
   align-items: center;
   background: #fff8f4;
   border: 2px solid #111111;
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
-  height: 54px;
+  height: 38px;
   justify-content: center;
   overflow: hidden;
   position: relative;
@@ -126,20 +126,20 @@
 
 .decoration-frame-preview > span {
   background: rgba(244, 143, 177, 0.2);
-  border-radius: 6px;
-  height: 26px;
-  width: 56px;
+  border-radius: 5px;
+  height: 18px;
+  width: 44px;
 }
 
 .decoration-frame-preview-stamp {
   border-style: dashed;
-  outline: 5px dotted #111111;
-  outline-offset: -8px;
+  outline: 4px dotted #111111;
+  outline-offset: -7px;
 }
 
 .decoration-frame-preview-photo {
-  border: 7px solid #fffaf4;
-  border-bottom-width: 14px;
+  border: 5px solid #fffaf4;
+  border-bottom-width: 10px;
   box-shadow: inset 0 0 0 2px #111111;
 }
 
